@@ -6,11 +6,10 @@ import random
 import string
 
 app = Flask(__name__)
-
 app.secret_key = "slider_super_secure_local_pass_key_12213"
 
 # ==========================================
-# DATABASE URL (RENDER ENVIRONMENT)
+# DATABASE URL
 # ==========================================
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -20,13 +19,23 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 ADMIN_PASSWORD = "slider123"
 
 # ==========================================
-# DATABASE
+# DB CONNECTION FIX (IMPORTANT)
 # ==========================================
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+    db_url = os.getenv("DATABASE_URL")
 
+    if not db_url:
+        raise Exception("DATABASE_URL is missing in environment variables")
+
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+    return psycopg2.connect(db_url, sslmode="require")
+
+# ==========================================
+# INIT DB (FIXED - NO BROKEN CODE)
+# ==========================================
 def init_db():
-
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -41,7 +50,6 @@ def init_db():
 
     conn.commit()
     conn.close()
-
 # ==========================================
 # USER LANDING TEMPLATE
 # ==========================================
@@ -542,61 +550,61 @@ def free_process_route():
 
     return redirect("https://sfl.gl/XSwjZ0w")
 
+
+# ==========================================
+# FREE GENERATE KEY (FIXED)
+# ==========================================
 @app.route('/free/generate/direct')
 def free_generate_direct():
 
-    now = int(time.time())
+    try:
+        now = int(time.time())
 
-    if 'authorized_click' not in session:
-        return '<script>alert("Bypass Detected!");window.location.href="/free";</script>'
+        if 'authorized_click' not in session:
+            return '<script>alert("Bypass Detected!");window.location.href="/free";</script>'
 
-    if now - session.get('click_time', 0) > 900:
+        if now - session.get('click_time', 0) > 900:
+            session.pop('authorized_click', None)
+            return '<script>alert("Session Expired!");window.location.href="/free";</script>'
 
         session.pop('authorized_click', None)
 
-        return '<script>alert("Session Expired!");window.location.href="/free";</script>'
+        pool = string.ascii_letters + string.digits
+        random_suffix = ''.join(random.choices(pool, k=15))
 
-    session.pop('authorized_click', None)
+        new_free_key = f"Slider_12h{random_suffix}"
+        expiry_time = now + (12 * 3600)
 
-    pool_characters = string.ascii_letters + string.digits
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    random_suffix = ''.join(random.choices(pool_characters, k=15))
+        cursor.execute(
+            "INSERT INTO free_keys_table (license_key, hwid, expiry_timestamp, game) VALUES (%s, %s, %s, %s)",
+            (new_free_key, '', expiry_time, 'CODM')
+        )
 
-    new_free_key = f"Slider_12h{random_suffix}"
+        conn.commit()
+        conn.close()
 
-    expiry_time = now + (12 * 3600)
+        return render_template_string(FREE_GENERATED_TEMPLATE, key=new_free_key)
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "INSERT INTO free_keys_table (license_key, hwid, expiry_timestamp, game) VALUES (%s, '', %s, 'CODM')",
-        (new_free_key, expiry_time)
-    )
-
-    conn.commit()
-    conn.close()
-
-    return render_template_string(FREE_GENERATED_TEMPLATE, key=new_free_key)
+    except Exception as e:
+        print("GEN KEY ERROR:", str(e))
+        return f"<h3>ERROR: {str(e)}</h3>"
 
 # ==========================================
-# VERIFY API FOR LUA
+# VERIFY API
 # ==========================================
 @app.route('/verify', methods=['POST'])
 def verify_key():
 
     try:
-
         key = request.form.get('key', '').strip()
         device_id = request.form.get('device_id', '').strip()
         game = request.form.get('game', '').strip()
 
         if not key:
-
-            return jsonify({
-                "status": 1,
-                "msg": "Invalid Key"
-            })
+            return jsonify({"status": 1, "msg": "Invalid Key"})
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -609,59 +617,30 @@ def verify_key():
         result = cursor.fetchone()
 
         if not result:
-
             conn.close()
+            return jsonify({"status": 1, "msg": "Invalid Key"})
 
-            return jsonify({
-                "status": 1,
-                "msg": "Invalid Key"
-            })
-
-        saved_hwid = result[0]
-        expiry_timestamp = int(result[1])
-        db_game = result[2]
-
+        saved_hwid, expiry_timestamp, db_game = result
         now = int(time.time())
 
-        # EXPIRED
         if now > expiry_timestamp:
-
             conn.close()
+            return jsonify({"status": 3, "msg": "Key Expired"})
 
-            return jsonify({
-                "status": 3,
-                "msg": "Key Expired"
-            })
-
-        # WRONG GAME
         if game != db_game:
-
             conn.close()
+            return jsonify({"status": 1, "msg": "Wrong Game"})
 
-            return jsonify({
-                "status": 1,
-                "msg": "Wrong Game"
-            })
-
-        # FIRST LOGIN SAVE DEVICE
         if saved_hwid == "":
-
             cursor.execute(
                 "UPDATE free_keys_table SET hwid = %s WHERE license_key = %s",
                 (device_id, key)
             )
-
             conn.commit()
 
-        # DIFFERENT DEVICE
         elif saved_hwid != device_id:
-
             conn.close()
-
-            return jsonify({
-                "status": 2,
-                "msg": "Key Used On Another Device"
-            })
+            return jsonify({"status": 2, "msg": "Key Used On Another Device"})
 
         conn.close()
 
@@ -672,92 +651,16 @@ def verify_key():
         })
 
     except Exception as e:
-
-        return jsonify({
-            "status": 1,
-            "msg": str(e)
-        })
+        return jsonify({"status": 1, "msg": str(e)})
 
 # ==========================================
-# ADMIN LOGIN
-# ==========================================
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-
-    if request.method == 'POST':
-
-        password = request.form.get('password')
-
-        if password == ADMIN_PASSWORD:
-
-            session['admin_logged_in'] = True
-
-            return redirect('/admin/panel')
-
-        else:
-
-            return '<script>alert("Wrong Password");window.location.href="/admin/login";</script>'
-
-    return render_template_string(ADMIN_LOGIN_TEMPLATE)
-
-# ==========================================
-# ADMIN PANEL
-# ==========================================
-@app.route('/admin/panel')
-def admin_panel():
-
-    if not session.get('admin_logged_in'):
-        return redirect('/admin/login')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM free_keys_table ORDER BY expiry_timestamp DESC")
-
-    keys = cursor.fetchall()
-
-    conn.close()
-
-    return render_template_string(ADMIN_PANEL_TEMPLATE, keys=keys)
-
-# ==========================================
-# DELETE KEY
-# ==========================================
-@app.route('/admin/delete/<key>')
-def delete_key(key):
-
-    if not session.get('admin_logged_in'):
-        return redirect('/admin/login')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "DELETE FROM free_keys_table WHERE license_key = %s",
-        (key,)
-    )
-
-    conn.commit()
-    conn.close()
-
-    return redirect('/admin/panel')
-
-# ==========================================
-# ADMIN LOGOUT
-# ==========================================
-@app.route('/admin/logout')
-def admin_logout():
-
-    session.pop('admin_logged_in', None)
-
-    return redirect('/admin/login')
-
-# ==========================================
-# START SERVER
+# INIT DB ON START
 # ==========================================
 init_db()
 
+# ==========================================
+# RUN SERVER
+# ==========================================
 if __name__ == "__main__":
-    init_db()
-    # Baguhin ang port=5000 sa int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
