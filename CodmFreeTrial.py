@@ -568,7 +568,7 @@ def free_process_route():
     conn.close()
 
     # IMPORTANT: ipasa token sa link
-    return redirect(f"https://sfl.gl/vA2T?token={token}")
+    return redirect(f"https://sfl.gl/0hpxBx?token={token}")
 
 
 # =========================
