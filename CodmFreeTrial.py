@@ -597,7 +597,6 @@ def free_generate_direct():
 # ==========================================
 @app.route('/verify', methods=['POST'])
 def verify_key():
-
     try:
         key = request.form.get('key', '').strip()
         device_id = request.form.get('device_id', '').strip()
@@ -670,6 +669,10 @@ def admin_login():
 
     return render_template_string(ADMIN_LOGIN_TEMPLATE)
 
+
+# ==========================================
+# ADMIN PANEL
+# ==========================================
 @app.route('/admin/panel')
 def admin_panel():
 
@@ -685,11 +688,35 @@ def admin_panel():
     conn.close()
 
     return render_template_string(ADMIN_PANEL_TEMPLATE, keys=keys)
-    
-    @app.route('/admin/logout')
+
+
+# ==========================================
+# DELETE KEY
+# ==========================================
+@app.route('/admin/delete/<key>')
+def delete_key(key):
+
+    if not session.get("admin"):
+        return redirect("/admin/login")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM free_keys_table WHERE license_key=%s", (key,))
+    conn.commit()
+    conn.close()
+
+    return redirect("/admin/panel")
+
+
+# ==========================================
+# LOGOUT
+# ==========================================
+@app.route('/admin/logout')
 def admin_logout():
     session.clear()
     return redirect("/admin/login")
+
 # ==========================================
 # INIT DB ON START
 # ==========================================
