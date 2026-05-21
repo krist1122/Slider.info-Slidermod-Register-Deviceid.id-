@@ -548,7 +548,7 @@ def free_process_route():
     session['authorized_click'] = True
     session['click_time'] = int(time.time())
 
-    return redirect("https://sfl.gl/XSwjZ0w")
+    return redirect("https://sfl.gl/vzr4cJ0B")
 
 
 # ==========================================
