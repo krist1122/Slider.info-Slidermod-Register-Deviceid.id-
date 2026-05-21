@@ -547,10 +547,6 @@ Delete
 # ==========================================
 # USER ROUTES
 # ==========================================
-@app.route('/free')
-def free_landing():
-    return render_template_string(FREE_LANDING_TEMPLATE)
-
 @app.route('/free/process', methods=['POST'])
 def free_process_route():
 
@@ -567,9 +563,8 @@ def free_process_route():
     conn.commit()
     conn.close()
 
-    session['token'] = token
-
-    return redirect("https://sfl.gl/vA2T")
+    # IMPORTANT: ipasa token sa link
+    return redirect(f"https://sfl.gl/vA2T?token={token}")
 
 
 # =========================
@@ -578,10 +573,10 @@ def free_process_route():
 @app.route('/free/return')
 def free_return():
 
-    token = session.get("token")
+    token = request.args.get("token")
 
     if not token:
-        return '<script>alert("No Token");window.location="/free";</script>'
+        return '<script>alert("Missing Token");window.location="/free";</script>'
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -589,8 +584,11 @@ def free_return():
     cursor.execute("SELECT used FROM free_tokens WHERE token=%s", (token,))
     result = cursor.fetchone()
 
-    if not result or result[0]:
-        return '<script>alert("Invalid / Used Token");window.location="/free";</script>'
+    if not result:
+        return '<script>alert("Invalid Token");window.location="/free";</script>'
+
+    if result[0]:
+        return '<script>alert("Already Used");window.location="/free";</script>'
 
     return redirect(f"/free/generate/direct?token={token}")
 
@@ -603,9 +601,6 @@ def free_generate_direct():
 
     token = request.args.get("token")
 
-    if not token:
-        return '<script>alert("No Token");window.location="/free";</script>'
-
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -615,16 +610,15 @@ def free_generate_direct():
     if not result:
         return '<script>alert("Invalid Token");window.location="/free";</script>'
 
-    if result[0] == True:
-        return '<script>alert("Already Used");window.location="/free";</script>'
+    if result[0]:
+        return '<script>alert("Token Already Used");window.location="/free";</script>'
 
-    # 🔥 MARK USED (ANTI-BYPASS IMPORTANT)
+    # MARK USED (ANTI-BYPASS CORE)
     cursor.execute("UPDATE free_tokens SET used=TRUE WHERE token=%s", (token,))
     conn.commit()
 
     # generate key
     now = int(time.time())
-
     new_key = "Slider_" + ''.join(random.choices(string.ascii_letters + string.digits, k=15))
     expiry = now + (12 * 3600)
 
