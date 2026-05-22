@@ -851,9 +851,9 @@ def verify_key():
         })
 
     except Exception as e:
-        return jsonify({"status": 1, "msg": str(e)})
-        
-        # ==========================================
+    return jsonify({"status": 1, "msg": str(e)})
+
+# ==========================================
 # ADMIN LOGIN
 # ==========================================
 @app.route('/admin/login', methods=['GET', 'POST'])
