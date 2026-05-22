@@ -861,11 +861,40 @@ def admin_panel():
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM free_keys_table")
-    keys = cursor.fetchall()
+    raw_keys = cursor.fetchall()
 
     conn.close()
 
-    return render_template_string(ADMIN_PANEL_TEMPLATE, keys=keys)
+    keys = []
+
+    now = int(time.time())
+
+    for key in raw_keys:
+
+        remaining = key[2] - now
+
+        if remaining <= 0:
+            expiry_text = "EXPIRED"
+
+        else:
+
+            days = remaining // 86400
+            hours = (remaining % 86400) // 3600
+            minutes = (remaining % 3600) // 60
+
+            expiry_text = f"{days}D {hours}H {minutes}M"
+
+        keys.append((
+            key[0],   # license_key
+            key[1],   # hwid
+            expiry_text,
+            key[3]    # game
+        ))
+
+    return render_template_string(
+        ADMIN_PANEL_TEMPLATE,
+        keys=keys
+    )
 
 # ==========================================
 # LOCK FREE KEY
