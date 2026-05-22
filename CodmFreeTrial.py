@@ -557,6 +557,7 @@ def free_process_route():
     token = str(uuid.uuid4())
 
     session["free_token"] = token
+    session["passed_safelink"] = False
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -569,7 +570,6 @@ def free_process_route():
     conn.commit()
     conn.close()
 
-    # DIRETSO SA SAFELINK
     return redirect("https://sfl.gl/0hpxBx")
 
 
@@ -603,6 +603,9 @@ def free_return():
     if result[0]:
         return '<script>alert("Already Used");window.location="/free";</script>'
 
+    # IMPORTANT
+    session["passed_safelink"] = True
+
     return redirect("/free/generate/direct")
 
 
@@ -611,6 +614,10 @@ def free_return():
 # ==========================================
 @app.route('/free/generate/direct')
 def free_generate_direct():
+
+    # ANTI BYPASS
+    if not session.get("passed_safelink"):
+        return '<script>alert("Complete Safelink First");window.location="/free";</script>'
 
     token = session.get("free_token")
 
@@ -641,10 +648,14 @@ def free_generate_direct():
         (token,)
     )
 
+    # GENERATE KEY
     now = int(time.time())
 
-    new_key = "Slider_" + ''.join(
-        random.choices(string.ascii_letters + string.digits, k=15)
+    new_key = "Slider_12h" + ''.join(
+        random.choices(
+            string.ascii_letters + string.digits,
+            k=15
+        )
     )
 
     expiry = now + (12 * 3600)
@@ -657,6 +668,8 @@ def free_generate_direct():
     conn.commit()
     conn.close()
 
+    # CLEAR SESSION
+    session.pop("passed_safelink", None)
     session.pop("free_token", None)
 
     return render_template_string(
