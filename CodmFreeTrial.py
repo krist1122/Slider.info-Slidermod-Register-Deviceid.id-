@@ -182,17 +182,15 @@ Official pricelist:
 Gcash, Paypal, Binance Wise 🙂
 </div>
 
-<div style="margin-top:18px;font-size:16px;">
-
+<div class="payment-methods">
 DM Telegram:
 <a 
 href="http://t.me/phia_maganda"
 target="_blank"
-style="color:#0088cc;font-weight:bold;text-decoration:none;"
+style="color:#0088cc;text-decoration:none;font-weight:bold;"
 >
 @phia_maganda
 </a>
-
 </div>
 
 </div>
