@@ -621,9 +621,6 @@ Delete
 # ==========================================
 # USER ROUTES
 # ==========================================
-# ==========================================
-# USER ROUTES
-# ==========================================
 @app.route('/free')
 def free_landing():
 
@@ -631,48 +628,6 @@ def free_landing():
         FREE_LANDING_TEMPLATE,
         free_enabled=FREE_KEY_ENABLED
     )
-
-    global FREE_KEY_ENABLED
-
-    if not FREE_KEY_ENABLED:
-
-        LOCKED_TEMPLATE = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <title>Free Locked</title>
-        </head>
-        <body style="font-family:sans-serif;text-align:center;padding-top:80px;">
-
-        <h1 style="color:red;">
-        FREE KEY TEMPORARILY LOCKED
-        </h1>
-
-        <p style="font-size:18px;">
-        Free trial is currently unavailable.<br><br>
-
-        Please wait for free access to reopen<br>
-        OR avail VIP access 🙂
-        </p>
-
-        <a href="http://t.me/phia_maganda"
-        target="_blank"
-        style="
-        font-size:20px;
-        color:#0088cc;
-        text-decoration:none;
-        font-weight:bold;
-        ">
-        DM @phia_maganda
-        </a>
-
-        </body>
-        </html>
-        """
-
-        return render_template_string(LOCKED_TEMPLATE)
-
-    return render_template_string(FREE_LANDING_TEMPLATE)
 
 @app.route('/free/process', methods=['POST'])
 def free_process_route():
