@@ -18,6 +18,10 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 # ADMIN PASSWORD
 # ==========================================
 ADMIN_PASSWORD = "slider123"
+# ==========================================
+# FREE KEY LOCK
+# ==========================================
+FREE_KEY_ENABLED = True
 
 # ==========================================
 # DB CONNECTION FIX (IMPORTANT)
@@ -518,6 +522,33 @@ tr:nth-child(even){
 Logout
 </a>
 
+<div style="margin-bottom:20px; margin-top:20px;">
+
+<a href="/admin/free/lock"
+style="
+background:red;
+padding:10px 15px;
+color:white;
+text-decoration:none;
+border-radius:5px;
+margin-right:10px;
+">
+LOCK FREE KEY
+</a>
+
+<a href="/admin/free/unlock"
+style="
+background:green;
+padding:10px 15px;
+color:white;
+text-decoration:none;
+border-radius:5px;
+">
+UNLOCK FREE KEY
+</a>
+
+</div>
+
 <table>
 
 <tr>
@@ -560,7 +591,93 @@ Delete
 # ==========================================
 @app.route('/free')
 def free_landing():
-    return render_template_string(FREE_LANDING_TEMPLATE)
+
+    global FREE_KEY_ENABLED
+
+    if not FREE_KEY_ENABLED:
+
+        LOCKED_TEMPLATE = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Free Key Locked</title>
+
+        <style>
+
+        body{
+            background:#ffffff;
+            color:#000000;
+            font-family:sans-serif;
+            padding:20px;
+            margin:0;
+            text-align:center;
+        }
+
+        .lock-box{
+            margin-top:80px;
+        }
+
+        .lock-title{
+            color:#ff0000;
+            font-size:28px;
+            font-weight:bold;
+            margin-bottom:20px;
+        }
+
+        .lock-message{
+            font-size:18px;
+            line-height:1.7;
+        }
+
+        .telegram-link{
+            display:inline-block;
+            margin-top:25px;
+            font-size:20px;
+            color:#0088cc;
+            text-decoration:none;
+            font-weight:bold;
+        }
+
+        </style>
+
+        </head>
+
+        <body>
+
+        <div class="lock-box">
+
+        <div class="lock-title">
+        FREE KEY TEMPORARILY LOCKED
+        </div>
+
+        <div class="lock-message">
+        Free key is temporarily unavailable.<br><br>
+
+        You can wait until free access opens again<br>
+        OR avail VIP key for instant access 🙂
+        </div>
+
+        <a
+        href="http://t.me/phia_maganda"
+        target="_blank"
+        class="telegram-link"
+        >
+        DM @phia_maganda
+        </a>
+
+        </div>
+
+        </body>
+        </html>
+        """
+
+        return render_template_string(LOCKED_TEMPLATE)
+
+    return render_template_string(FREE_LANDING_TEMPLATE)    
 
 @app.route('/free/process', methods=['POST'])
 def free_process_route():
@@ -785,7 +902,36 @@ def admin_panel():
 
     return render_template_string(ADMIN_PANEL_TEMPLATE, keys=keys)
 
+# ==========================================
+# LOCK FREE KEY
+# ==========================================
+@app.route('/admin/free/lock')
+def lock_free_key():
 
+    global FREE_KEY_ENABLED
+
+    if not session.get("admin"):
+        return redirect("/admin/login")
+
+    FREE_KEY_ENABLED = False
+
+    return redirect("/admin/panel")
+
+
+# ==========================================
+# UNLOCK FREE KEY
+# ==========================================
+@app.route('/admin/free/unlock')
+def unlock_free_key():
+
+    global FREE_KEY_ENABLED
+
+    if not session.get("admin"):
+        return redirect("/admin/login")
+
+    FREE_KEY_ENABLED = True
+
+    return redirect("/admin/panel")
 # ==========================================
 # DELETE KEY
 # ==========================================
