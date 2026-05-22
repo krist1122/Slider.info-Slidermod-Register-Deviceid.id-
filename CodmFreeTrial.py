@@ -173,7 +173,7 @@ Purchase VIP, No ads, More features
 <div class="info-text">
 
 <div class="pricelist-title">
-Official pricelist || Codm Garena Free Key Only!
+Official pricelist || Codm Free Key Only!
 </div>
 
 <div class="price-item">₱150 || $2.57 → 3 Days</div>
