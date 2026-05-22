@@ -793,9 +793,6 @@ def free_generate_direct():
         key=new_key
     )
 
-# ==========================================
-# VERIFY API
-# ==========================================
 @app.route('/verify', methods=['POST'])
 def verify_key():
     try:
@@ -851,7 +848,7 @@ def verify_key():
         })
 
     except Exception as e:
-    return jsonify({"status": 1, "msg": str(e)})
+        return jsonify({"status": 1, "msg": str(e)})
 
 # ==========================================
 # ADMIN LOGIN
