@@ -589,7 +589,6 @@ UNLOCK FREE KEY
 <th>Expiry</th>
 <th>Game</th>
 <th>Action</th>
-<th>Edit Time</th>
 </tr>
 
 {% for key in keys %}
@@ -602,34 +601,11 @@ UNLOCK FREE KEY
 <td>{{ key[3] }}</td>
 
 <td>
-    <form action="/admin/edit_time/{{ key[0] }}" method="POST"
-        style="display:flex; gap:5px; justify-content:center; align-items:center;">
 
-        <input type="number" name="hours" placeholder="H" style="width:50px;">
-        <input type="number" name="minutes" placeholder="M" style="width:50px;">
+<a class="delete-btn" href="/admin/delete/{{ key[0] }}">
+Delete
+</a>
 
-        <select name="action" style="padding:4px;">
-            <option value="add">Add</option>
-            <option value="minus">Minus</option>
-        </select>
-
-        <button type="submit" style="
-            background:blue;
-            color:white;
-            border:none;
-            padding:5px 10px;
-            border-radius:4px;
-        ">
-            Apply
-        </button>
-
-    </form>
-</td>
-
-<td>
-    <a class="delete-btn" href="/admin/delete/{{ key[0] }}">
-        Delete
-    </a>
 </td>
 
 </tr>
@@ -640,6 +616,7 @@ UNLOCK FREE KEY
 
 </body>
 </html>
+"""
 
 # ==========================================
 # USER ROUTES
@@ -774,7 +751,7 @@ def free_generate_direct():
         )
     )
 
-    expiry = now + (4 * 3600)
+    expiry = now + (12 * 3600)
 
     cursor.execute(
         "INSERT INTO free_keys_table (license_key, hwid, expiry_timestamp, game) VALUES (%s,%s,%s,%s)",
@@ -793,6 +770,9 @@ def free_generate_direct():
         key=new_key
     )
 
+# ==========================================
+# VERIFY API
+# ==========================================
 @app.route('/verify', methods=['POST'])
 def verify_key():
     try:
@@ -849,8 +829,8 @@ def verify_key():
 
     except Exception as e:
         return jsonify({"status": 1, "msg": str(e)})
-
-# ==========================================
+        
+        # ==========================================
 # ADMIN LOGIN
 # ==========================================
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -915,7 +895,7 @@ def admin_panel():
         ADMIN_PANEL_TEMPLATE,
         keys=keys
     )
-    
+
 # ==========================================
 # LOCK FREE KEY
 # ==========================================
@@ -963,58 +943,6 @@ def delete_key(key):
     conn.close()
 
     return redirect("/admin/panel")
-    
-    
-@app.route('/admin/edit_time/<key>', methods=['POST'])
-def edit_time(key):
-
-    if not session.get("admin"):
-        return redirect("/admin/login")
-
-    try:
-        hours = int(request.form.get("hours") or 0)
-        minutes = int(request.form.get("minutes") or 0)
-        action = request.form.get("action", "add")
-
-        add_seconds = (hours * 3600) + (minutes * 60)
-
-        if action == "minus":
-            add_seconds = -add_seconds
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT expiry_timestamp FROM free_keys_table WHERE license_key=%s",
-            (key,)
-        )
-
-        result = cursor.fetchone()
-
-        if not result:
-            conn.close()
-            return redirect("/admin/panel")
-
-        current_expiry = result[0]
-
-        new_expiry = current_expiry + add_seconds
-
-        now = int(time.time())
-        if new_expiry < now:
-            new_expiry = now
-
-        cursor.execute(
-            "UPDATE free_keys_table SET expiry_timestamp=%s WHERE license_key=%s",
-            (new_expiry, key)
-        )
-
-        conn.commit()
-        conn.close()
-
-        return redirect("/admin/panel")
-
-    except:
-        return redirect("/admin/panel")
 
 
 # ==========================================
@@ -1036,3 +964,4 @@ init_db()
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+    
