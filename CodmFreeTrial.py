@@ -581,6 +581,78 @@ UNLOCK FREE KEY
 
 </div>
 
+<!-- GENERATE CUSTOM KEY -->
+<div style="
+background:#1a1a1a;
+padding:20px;
+border-radius:10px;
+margin-top:20px;
+margin-bottom:25px;
+">
+
+<h2>Create Key</h2>
+
+<form action="/admin/generate_key" method="POST">
+
+<div style="
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+align-items:center;
+">
+
+<input type="number" name="days" placeholder="Days"
+style="
+padding:10px;
+width:90px;
+border:none;
+border-radius:5px;
+">
+
+<input type="number" name="hours" placeholder="Hours"
+style="
+padding:10px;
+width:90px;
+border:none;
+border-radius:5px;
+">
+
+<input type="number" name="minutes" placeholder="Minutes"
+style="
+padding:10px;
+width:90px;
+border:none;
+border-radius:5px;
+">
+
+<select name="game"
+style="
+padding:10px;
+border:none;
+border-radius:5px;
+">
+<option value="CODM">CODM</option>
+<option value="MLBB">MLBB</option>
+</select>
+
+<button type="submit"
+style="
+background:#4caf50;
+color:white;
+border:none;
+padding:10px 18px;
+border-radius:5px;
+cursor:pointer;
+">
+Generate
+</button>
+
+</div>
+
+</form>
+
+</div>
+
 <table>
 
 <tr>
@@ -952,6 +1024,57 @@ def delete_key(key):
 def admin_logout():
     session.clear()
     return redirect("/admin/login")
+    
+    # ==========================================
+# ADMIN GENERATE KEY
+# ==========================================
+@app.route('/admin/generate_key', methods=['POST'])
+def admin_generate_key():
+
+    if not session.get("admin"):
+        return redirect("/admin/login")
+
+    try:
+
+        days = int(request.form.get("days") or 0)
+        hours = int(request.form.get("hours") or 0)
+        minutes = int(request.form.get("minutes") or 0)
+
+        game = request.form.get("game") or "CODM"
+
+        total_seconds = (
+            (days * 86400) +
+            (hours * 3600) +
+            (minutes * 60)
+        )
+
+        if total_seconds <= 0:
+            return redirect("/admin/panel")
+
+        new_key = "VIP_" + ''.join(
+            random.choices(
+                string.ascii_letters + string.digits,
+                k=20
+            )
+        )
+
+        expiry = int(time.time()) + total_seconds
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "INSERT INTO free_keys_table (license_key, hwid, expiry_timestamp, game) VALUES (%s,%s,%s,%s)",
+            (new_key, '', expiry, game)
+        )
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/admin/panel")
+
+    except:
+        return redirect("/admin/panel")
 
 # ==========================================
 # INIT DB ON START
