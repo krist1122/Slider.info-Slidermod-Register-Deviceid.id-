@@ -190,7 +190,7 @@ GCash • PayPal • Binance • Wise
 </div>
 
 <div class="payment-methods">
-DM:
+AVAIL NOW!
 <a 
 href="http://t.me/phia_maganda"
 target="_blank"
