@@ -221,7 +221,7 @@ Free trial link 1.
 </button>
 
 <span class="temporary-text">
-(CODM GARENA)
+(CODM)
 </span>
 
 </div>
