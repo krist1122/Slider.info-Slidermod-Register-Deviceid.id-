@@ -185,12 +185,11 @@ Purchase VIP, No ads, More features
 <div class="price-item">₱2,000 | Permanent Access ∞</div>
 
 <div class="payment-methods">
-Payment Methods:<br>
 GCash • PayPal • Binance • Wise
 </div>
 
 <div class="payment-methods">
-AVAIL NOW!
+DM:
 <a 
 href="http://t.me/phia_maganda"
 target="_blank"
