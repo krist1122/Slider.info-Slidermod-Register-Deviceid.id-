@@ -315,11 +315,12 @@ body{
     width:100%;
     max-width:340px;
     padding:14px;
-    font-size:16px;
+    font-size:18px;
     text-align:center;
     border-radius:4px;
     margin-bottom:15px;
     word-break:break-all;
+    box-sizing:border-box;
 }
 
 .copy-btn{
@@ -333,6 +334,7 @@ body{
     border:none;
     border-radius:4px;
     cursor:pointer;
+    box-sizing:border-box;
 }
 
 .footer-info{
@@ -727,7 +729,7 @@ def free_process_route():
     conn.commit()
     conn.close()
 
-    return redirect("https://gplinks.co/UPoCn4j")
+    return redirect("https://sfl.gl/xGgRORgO")
 
 
 
@@ -1338,11 +1340,12 @@ body{
     width:100%;
     max-width:340px;
     padding:14px;
-    font-size:16px;
+    font-size:18px;
     text-align:center;
     border-radius:4px;
     margin-bottom:15px;
     word-break:break-all;
+    box-sizing:border-box;
 }
 
 .copy-btn{
@@ -1356,6 +1359,7 @@ body{
     border:none;
     border-radius:4px;
     cursor:pointer;
+    box-sizing:border-box;
 }
 
 .footer-info{
