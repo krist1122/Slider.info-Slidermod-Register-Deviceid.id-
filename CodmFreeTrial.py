@@ -383,7 +383,7 @@ Copy key
 Validity: 12 Hour's
 </div>
 
-Subscribe to my channel to get latest updates
+SUBSCRIBE TO MY CHANNEL TO GET LATEST UPDATES
 
 <a href="https://t.me/KAZELIDERMODS" target="_blank" class="tg-channel-link">
 HTTPS://T.ME/KAZELIDERMODS
@@ -1408,7 +1408,7 @@ Copy key
 Validity: 12 Hour's
 </div>
 
-Subscribe to my channel to get latest updates
+SUBSCRIBE TO MY CHANNEL TO GET LATEST UPDATES
 
 <a href="https://t.me/KAZELIDERMODS" target="_blank" class="tg-channel-link">
 HTTPS://T.ME/KAZELIDERMODS
