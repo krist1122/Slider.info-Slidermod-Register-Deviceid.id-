@@ -351,7 +351,7 @@ body{
 
 .tg-channel-link{
     display:block;
-    color:#f39c12;
+    color:#00ff00;
     text-decoration:none;
     margin-top:6px;
 }
@@ -1376,7 +1376,7 @@ body{
 
 .tg-channel-link{
     display:block;
-    color:#f39c12;
+    color:#00ff00;
     text-decoration:none;
     margin-top:6px;
 }
