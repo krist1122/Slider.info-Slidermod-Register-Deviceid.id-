@@ -729,7 +729,7 @@ def free_process_route():
     conn.commit()
     conn.close()
 
-    return redirect("https://sfl.gl/xGgRORgO")
+    return redirect("https://gplinks.co/coHNY")
 
 
 
@@ -827,7 +827,7 @@ def free_generate_direct():
         )
     )
 
-    expiry = now + (4 * 3600)
+    expiry = now + (3 * 3600)
 
     cursor.execute(
         "INSERT INTO free_keys_table (license_key, hwid, expiry_timestamp, game) VALUES (%s,%s,%s,%s)",
