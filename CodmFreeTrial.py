@@ -695,15 +695,24 @@ Generate
 
 <td>
 
-<a class="reset-btn"
-href="/admin/reset_hwid/{{ key[0] }}">
-HWID
-</a>
+<div style="
+display:flex;
+flex-direction:column;
+gap:5px;
+align-items:center;
+">
 
 <a class="delete-btn"
 href="/admin/delete/{{ key[0] }}">
 Delete
 </a>
+
+<a class="reset-btn"
+href="/admin/reset_hwid/{{ key[0] }}">
+HWID
+</a>
+
+</div>
 
 </td>
 
