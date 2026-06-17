@@ -538,6 +538,15 @@ tr:nth-child(even){
     border-radius:5px;
 }
 
+.reset-btn{
+    background:#2196f3;
+    color:white;
+    padding:8px 12px;
+    text-decoration:none;
+    border-radius:5px;
+    margin-right:5px;
+}
+
 .logout-btn{
     background:#444;
     color:white;
@@ -686,7 +695,13 @@ Generate
 
 <td>
 
-<a class="delete-btn" href="/admin/delete/{{ key[0] }}">
+<a class="reset-btn"
+href="/admin/reset_hwid/{{ key[0] }}">
+Reset HWID
+</a>
+
+<a class="delete-btn"
+href="/admin/delete/{{ key[0] }}">
 Delete
 </a>
 
@@ -1027,7 +1042,28 @@ def delete_key(key):
     conn.close()
 
     return redirect("/admin/panel")
+    
+# ==========================================
+# RESET HWID
+# ==========================================
+@app.route('/admin/reset_hwid/<key>')
+def reset_hwid(key):
 
+    if not session.get("admin"):
+        return redirect("/admin/login")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "UPDATE free_keys_table SET hwid='' WHERE license_key=%s",
+        (key,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/admin/panel")
 
 # ==========================================
 # LOGOUT
