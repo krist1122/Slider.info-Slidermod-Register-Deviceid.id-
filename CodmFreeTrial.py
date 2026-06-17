@@ -629,10 +629,10 @@ border:none;
 border-radius:5px;
 ">
 
-<input type="text" name="prefix" placeholder="Prefix"
+<input type="text" name="custom_key" placeholder="Custom Key"
 style="
 padding:10px;
-width:120px;
+width:220px;
 border:none;
 border-radius:5px;
 ">
@@ -1037,7 +1037,7 @@ def admin_logout():
     session.clear()
     return redirect("/admin/login")
     
-    # ==========================================
+# ==========================================
 # ADMIN GENERATE KEY
 # ==========================================
 @app.route('/admin/generate_key', methods=['POST'])
@@ -1063,17 +1063,17 @@ def admin_generate_key():
         if total_seconds <= 0:
             return redirect("/admin/panel")
 
-        prefix = request.form.get("prefix", "").strip()
+        custom_key = request.form.get("custom_key", "").strip()
 
-if prefix == "":
-    prefix = "Slider"
-
-new_key = prefix + "_" + ''.join(
-    random.choices(
-        string.ascii_letters + string.digits,
-        k=20
-    )
-)
+        if custom_key:
+            new_key = custom_key
+        else:
+            new_key = "Slider_" + ''.join(
+                random.choices(
+                    string.ascii_letters + string.digits,
+                    k=20
+                )
+            )
 
         expiry = int(time.time()) + total_seconds
 
@@ -1090,7 +1090,8 @@ new_key = prefix + "_" + ''.join(
 
         return redirect("/admin/panel")
 
-    except:
+    except Exception as e:
+        print(e)
         return redirect("/admin/panel")
 
 # ==========================================
