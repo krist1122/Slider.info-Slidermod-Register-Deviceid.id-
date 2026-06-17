@@ -629,6 +629,14 @@ border:none;
 border-radius:5px;
 ">
 
+<input type="text" name="prefix" placeholder="Prefix"
+style="
+padding:10px;
+width:120px;
+border:none;
+border-radius:5px;
+">
+
 <select name="game"
 style="
 padding:10px;
@@ -1055,12 +1063,17 @@ def admin_generate_key():
         if total_seconds <= 0:
             return redirect("/admin/panel")
 
-        new_key = "Slider_" + ''.join(
-            random.choices(
-                string.ascii_letters + string.digits,
-                k=20
-            )
-        )
+        prefix = request.form.get("prefix", "").strip()
+
+if prefix == "":
+    prefix = "Slider"
+
+new_key = prefix + "_" + ''.join(
+    random.choices(
+        string.ascii_letters + string.digits,
+        k=20
+    )
+)
 
         expiry = int(time.time()) + total_seconds
 
