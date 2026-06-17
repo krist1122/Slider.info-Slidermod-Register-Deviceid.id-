@@ -697,7 +697,7 @@ Generate
 
 <a class="reset-btn"
 href="/admin/reset_hwid/{{ key[0] }}">
-Reset HWID
+HWID
 </a>
 
 <a class="delete-btn"
