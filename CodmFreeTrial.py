@@ -547,6 +547,15 @@ tr:nth-child(even){
     margin-right:5px;
 }
 
+.copy-btn{
+    background:#ff9800;
+    color:white;
+    padding:8px 12px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
 .logout-btn{
     background:#444;
     color:white;
@@ -702,14 +711,20 @@ gap:5px;
 align-items:center;
 ">
 
-<a class="delete-btn"
-href="/admin/delete/{{ key[0] }}">
-Delete
-</a>
+<button
+class="copy-btn"
+onclick="copyKey('{{ key[0] }}')">
+Copy Key
+</button>
 
 <a class="reset-btn"
 href="/admin/reset_hwid/{{ key[0] }}">
 HWID
+</a>
+
+<a class="delete-btn"
+href="/admin/delete/{{ key[0] }}">
+Delete
 </a>
 
 </div>
@@ -721,6 +736,15 @@ HWID
 {% endfor %}
 
 </table>
+
+<script>
+
+function copyKey(key){
+    navigator.clipboard.writeText(key);
+    alert("Copied Key:\n\n" + key);
+}
+
+</script>
 
 </body>
 </html>
