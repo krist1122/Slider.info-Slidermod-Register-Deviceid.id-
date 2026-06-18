@@ -401,13 +401,33 @@ function showKeyScreen(){
 
 }
 
-function copyToClipboard(){
+async function copyToClipboard(){
 
     var key = document.getElementById("keyText").innerText;
 
-    navigator.clipboard.writeText(key);
+    try{
 
-    alert("Copied Free Key:\\n\\n" + key);
+        await navigator.clipboard.writeText(key);
+
+        alert("Copied Free Key:\\n\\n" + key);
+
+    }catch(err){
+
+        const tempInput = document.createElement("input");
+        tempInput.value = key;
+
+        document.body.appendChild(tempInput);
+
+        tempInput.select();
+        tempInput.setSelectionRange(0, 99999);
+
+        document.execCommand("copy");
+
+        document.body.removeChild(tempInput);
+
+        alert("Copied Free Key:\\n\\n" + key);
+
+    }
 
 }
 
