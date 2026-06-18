@@ -702,14 +702,27 @@ gap:5px;
 align-items:center;
 ">
 
-<a class="delete-btn"
-href="/admin/delete/{{ key[0] }}">
-Delete
-</a>
+<button
+style="
+background:#ff9800;
+color:white;
+border:none;
+padding:8px 12px;
+border-radius:5px;
+cursor:pointer;
+"
+onclick='copyKey("{{ key[0] }}")'>
+Copy Key
+</button>
 
 <a class="reset-btn"
 href="/admin/reset_hwid/{{ key[0] }}">
 HWID
+</a>
+
+<a class="delete-btn"
+href="/admin/delete/{{ key[0] }}">
+Delete
 </a>
 
 </div>
@@ -721,6 +734,22 @@ HWID
 {% endfor %}
 
 </table>
+
+<script>
+
+function copyKey(key){
+
+    navigator.clipboard.writeText(key)
+    .then(function(){
+        alert("Copied Key:\n\n" + key);
+    })
+    .catch(function(){
+        prompt("Copy Key:", key);
+    });
+
+}
+
+</script>
 
 </body>
 </html>
