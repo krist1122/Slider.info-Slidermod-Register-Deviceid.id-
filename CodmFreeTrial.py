@@ -740,8 +740,16 @@ Delete
 <script>
 
 function copyKey(key){
-    navigator.clipboard.writeText(key);
-    alert("Copied Key:\n\n" + key);
+
+    navigator.clipboard.writeText(key)
+    .then(() => {
+        alert("Copied Key:\n\n" + key);
+    })
+    .catch(err => {
+        alert("Copy Failed!");
+        console.log(err);
+    });
+
 }
 
 </script>
