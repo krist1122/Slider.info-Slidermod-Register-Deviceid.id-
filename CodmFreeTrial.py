@@ -660,7 +660,7 @@ def free_process_route():
     conn.commit()
     conn.close()
 
-    return redirect("https://gplinks.co/k2AXw")
+    return redirect("https://gplinks.co/coHNY")
     
 # =========================
 # RETURN ROUTE
