@@ -279,9 +279,6 @@ OR avail ViP access 🙂
 </html>
 """
 
-# ==========================================
-# KULANG NA CODE 1: FREE GENERATED KEY TEMPLATE
-# ==========================================
 FREE_GENERATED_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -292,18 +289,42 @@ FREE_GENERATED_TEMPLATE = """
     <style>
         body { background:#ffffff; color:#000000; font-family:sans-serif; padding:20px; text-align:center; }
         .key-container { background:#f3f3f3; padding:15px; border-radius:5px; border:2px dashed #008000; display:inline-block; margin-top:20px; font-size:18px; font-weight:bold; color:#008000; word-break:break-all; }
-        .btn-back { display:inline-block; margin-top:25px; padding:10px 20px; background:#00a2e8; color:white; text-decoration:none; border-radius:5px; font-weight:bold; }
+        .btn-copy { display:inline-block; margin-top:25px; padding:10px 20px; background:#00a2e8; color:white; text-decoration:none; border-radius:5px; font-weight:bold; border:none; cursor:pointer; }
+        .btn-copy:active { background: #0078ae; }
     </style>
 </head>
 <body>
     <h2>SUCCESSFULLY GENERATED!</h2>
-    <p>I-copy ang key na ito at ilagay sa iyong mod menu login:</p>
-    <div class="key-container">{{ key }}</div>
+    <p>Join Our Telegram Channel For More Free Update's</p>
+    
+    <!-- Nilagyan natin ng id na "keyText" para madaling makuha ng JavaScript -->
+    <div class="key-container" id="keyText">{{ key }}</div>
     <br>
-    <a href="/free" class="btn-back">Bumalik sa Home</a>
+    
+    <!-- Ginawa nating button na may onclick function para sa pag-copy -->
+    <button class="btn-copy" onclick="copyKey()">Copy Key</button>
+
+    <script>
+        function copyKey() {
+            var keyElement = document.getElementById("keyText");
+            var textArea = document.createElement("textarea");
+            textArea.value = keyElement.innerText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            
+            // Konting feedback para sa user na na-copy na
+            event.target.innerText = "Copied!";
+            setTimeout(function() {
+                event.target.innerText = "Copy Key";
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
 """
+
 
 # ==========================================
 # KULANG NA CODE 2: ADMIN LOGIN TEMPLATE
@@ -660,7 +681,7 @@ def free_process_route():
     conn.commit()
     conn.close()
 
-    return redirect("https://sfl.gl/xGgRORgO")
+    return redirect("https://gplinks.co/coHNY")
     
 # =========================
 # RETURN ROUTE
