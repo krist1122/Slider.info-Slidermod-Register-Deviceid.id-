@@ -185,7 +185,7 @@ body{
 
 <body>
 
-<a href="https://t.me/KAZELIDERMODS/380" target="_blank" class="vip-link">
+<a href="https://t.me/SliderModMenuCodm" target="_blank" class="vip-link">
 Purchase VIP, No ads, More features
 </a>
 
@@ -681,7 +681,7 @@ def free_process_route():
     conn.commit()
     conn.close()
 
-    return redirect("https://sfl.gl/xGgRORgO")
+    return redirect("https://gplinks.co/coHNY")
     
 # =========================
 # RETURN ROUTE
