@@ -378,7 +378,8 @@ body{
 table{
     width:100%;
     border-collapse:collapse;
-    margin-top:20px;
+    margin-top:10px;
+    margin-bottom:30px;
 }
 
 th, td{
@@ -393,6 +394,11 @@ th{
 
 tr:nth-child(even){
     background:#181818;
+}
+
+.expired-table tr{
+    background:#221111 !important;
+    color:#ff9999;
 }
 
 .delete-btn{
@@ -420,13 +426,19 @@ tr:nth-child(even){
     border-radius:5px;
 }
 
+h2 {
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+    margin-top: 30px;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h1>Generated Keys</h1>
+<h1>Admin Dashboard</h1>
 
 <a href="/admin/logout" class="logout-btn">
 Logout
@@ -538,6 +550,8 @@ Generate
 
 </div>
 
+<!-- ACTIVE KEYS TABLE -->
+<h2>Active Keys</h2>
 <table>
 
 <tr>
@@ -548,13 +562,76 @@ Generate
 <th>Action</th>
 </tr>
 
-{% for key in keys %}
+{% for key in active_keys %}
 
 <tr>
 
 <td>{{ key[0] }}</td>
 <td>{{ key[1] }}</td>
-<td>{{ key[2] }}</td>
+<td style="color:#4caf50; font-weight:bold;">{{ key[2] }}</td>
+<td>{{ key[3] }}</td>
+
+<td>
+
+<div style="
+display:flex;
+flex-direction:column;
+gap:5px;
+align-items:center;
+">
+
+<button
+style="
+background:#ff9800;
+color:white;
+border:none;
+padding:8px 12px;
+border-radius:5px;
+cursor:pointer;
+"
+onclick='copyKey("{{ key[0] }}")'>
+Copy Key
+</button>
+
+<a class="reset-btn"
+href="/admin/reset_hwid/{{ key[0] }}">
+HWID
+</a>
+
+<a class="delete-btn"
+href="/admin/delete/{{ key[0] }}">
+Delete
+</a>
+
+</div>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<!-- EXPIRED KEYS TABLE -->
+<h2>Expired Keys</h2>
+<table class="expired-table">
+
+<tr>
+<th>License Key</th>
+<th>HWID</th>
+<th>Expiry</th>
+<th>Game</th>
+<th>Action</th>
+</tr>
+
+{% for key in expired_keys %}
+
+<tr>
+
+<td>{{ key[0] }}</td>
+<td>{{ key[1] }}</td>
+<td style="color:red; font-weight:bold;">{{ key[2] }}</td>
 <td>{{ key[3] }}</td>
 
 <td>
@@ -618,6 +695,7 @@ function copyKey(key){
 </body>
 </html>
 """
+
 
 # ==========================================
 # USER ROUTES
@@ -868,7 +946,7 @@ def admin_login():
 
 
 # ==========================================
-# ADMIN PANEL
+# ADMIN PANEL (MODIFIED PARA SA ACTIVE & EXPIRED)
 # ==========================================
 @app.route('/admin/panel')
 def admin_panel():
@@ -884,30 +962,40 @@ def admin_panel():
 
     conn.close()
 
-    keys = []
+    active_keys = []
+    expired_keys = []
     now = int(time.time())
 
     for key in raw_keys:
         remaining = key[2] - now
+        
+        # Hatiin kung expired o active pa
         if remaining <= 0:
-            expiry_text = "EXPIRED"
+            expired_keys.append((
+                key[0],   
+                key[1],   
+                "EXPIRED",
+                key[3]    
+            ))
         else:
             days = remaining // 86400
             hours = (remaining % 86400) // 3600
             minutes = (remaining % 3600) // 60
             expiry_text = f"{days}D {hours}H {minutes}M"
 
-        keys.append((
-            key[0],   
-            key[1],   
-            expiry_text,
-            key[3]    
-        ))
+            active_keys.append((
+                key[0],   
+                key[1],   
+                expiry_text,
+                key[3]    
+            ))
 
     return render_template_string(
         ADMIN_PANEL_TEMPLATE,
-        keys=keys
+        active_keys=active_keys,
+        expired_keys=expired_keys
     )
+
 
 # ==========================================
 # LOCK FREE KEY
