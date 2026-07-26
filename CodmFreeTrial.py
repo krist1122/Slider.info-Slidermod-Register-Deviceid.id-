@@ -677,20 +677,48 @@ Delete
 </table>
 
 <script>
-
 function copyKey(key){
-
-    navigator.clipboard.writeText(key)
-    .then(function(){
-        alert("Copied Key:\n\n" + key);
-    })
-    .catch(function(){
-        prompt("Copy Key:", key);
-    });
-
+    // Subukan muna gamitin ang modern clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(key).then(function(){
+            alert("Copied Key:\n\n" + key);
+        }).catch(function(){
+            fallbackCopyText(key);
+        });
+    } else {
+        fallbackCopyText(key);
+    }
 }
 
+function fallbackCopyText(key) {
+    var textArea = document.createElement("textarea");
+    textArea.value = key;
+    
+    // Ilagay sa hidden area para hindi makaistorbo sa screen
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            alert("Copied Key:\n\n" + key);
+        } else {
+            prompt("Copy Key manually:", key);
+        }
+    } catch (err) {
+        prompt("Copy Key manually:", key);
+    }
+    
+    document.body.removeChild(textArea);
+}
 </script>
+
 
 </body>
 </html>
