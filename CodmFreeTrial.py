@@ -238,7 +238,7 @@ tr:nth-child(even){background:#161616;}
 <div class="container">
 
 <div style="display:flex;justify-content:space-between;align-items:center;">
-<h1>🤖 Slider Mods VIP Dashboard</h1>
+<h1>🤖 Slider Mods VIP Dashboard CODM</h1>
 <a href="/admin/logout"><button style="background:#ff3b30;color:white;">Logout</button></a>
 </div>
 
