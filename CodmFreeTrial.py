@@ -114,7 +114,7 @@ body{background:#ffffff;color:#000000;font-family:sans-serif;padding:20px;margin
 <div class="price-item">₱730  |  $12.87 •  30 Days</div>
 <div class="price-item">₱2,000 | Permanent Access ∞</div>
 <div class="payment-methods">GCash • PayPal • Binance • Wise</div>
-<div class="payment-methods">DM: <a href="http://t.me/phia_maganda" target="_blank" style="color:#0088cc;text-decoration:none;font-weight:bold;">@phia_maganda</a></div>
+<div class="payment-methods">DM: <a href="http://t.me/phia_maganda" target="_blank" style="color:#0088cc;text-decoration:none;font-weight:bold;">𝑷𝒉𝒊𝒂 𝑭𝒆𝒍𝒊𝒄𝒊𝒂</a></div>
 </div>
 <div class="divider">=======================================</div>
 {% if free_enabled %}
