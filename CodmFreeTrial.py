@@ -290,15 +290,23 @@ tr:nth-child(even){background:#161616;}
 <div class="card">
 <h2>✏️ Custom Key Generator</h2>
 <form action="/admin/custom_generate" method="POST">
-<input type="text" name="custom_key" placeholder="Enter Custom Key Name" required>
-<select name="game">
-    <option value="CODM">Target: CODM</option>
-    <option value="MLBB">Target: MLBB</option>
+<input type="text" name="custom_key" placeholder="Enter Custom Key Name" required style="width:100%;">
+<br>
+<label>Target Game:</label>
+<select name="game" style="border: 1px solid #0a84ff; width:100%;">
+    <option value="CODM">Call of Duty Mobile (CODM)</option>
+    <option value="MLBB">Mobile Legends (MLBB)</option>
 </select>
 <br>
-<input type="number" name="days" placeholder="Days" value="0" style="width:80px;">
-<input type="number" name="hours" placeholder="Hours" value="0" style="width:80px;">
-<input type="number" name="minutes" placeholder="Minutes" value="0" style="width:80px;">
+<label>Days</label>
+<input type="number" name="days" placeholder="Days" value="0" style="width:100%;">
+<br>
+<label>Hours</label>
+<input type="number" name="hours" placeholder="Hours" value="0" style="width:100%;">
+<br>
+<label>Minutes</label>
+<input type="number" name="minutes" placeholder="Minutes" value="0" style="width:100%;">
+<br>
 <button type="submit" style="background:#0a84ff;">Generate Custom Key</button>
 </form>
 </div>
