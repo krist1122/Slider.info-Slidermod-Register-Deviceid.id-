@@ -451,22 +451,17 @@ def free_process_route():
 
     cursor.execute("SELECT 1 FROM ip_access_logs WHERE ip_address=%s AND access_date=%s", (user_ip, current_date))
     already_accessed = cursor.fetchone()
+    conn.close()
 
     if already_accessed:
-        conn.close()
         return '<script>alert("You have already used your free trial for today. try again tomorrow");window.location="/free";</script>'
-
-    try:
-        cursor.execute("INSERT INTO ip_access_logs (ip_address, access_date) VALUES (%s, %s)", (user_ip, current_date))
-    except psycopg2.IntegrityError:
-        conn.rollback()
-        conn.close()
-        return '<script>alert("Masyadong mabilis lods, dahan-dahan lang.");window.location="/free";</script>'
 
     token = str(uuid.uuid4())
     session["free_token"] = token
     session["passed_safelink"] = False
 
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute("INSERT INTO free_tokens (token, used, created_at) VALUES (%s,%s,%s)", (token, False, int(time.time())))
     conn.commit()
     conn.close()
@@ -509,8 +504,21 @@ def free_generate_direct():
     if not token:
         return '<script>alert("Session Expired");window.location="/free";</script>'
 
+    if request.headers.getlist("X-Forwarded-For"):
+        user_ip = request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip()
+    else:
+        user_ip = request.remote_addr
+
+    current_date = time.strftime("%Y-%m-%d", time.gmtime())
+
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    cursor.execute("SELECT 1 FROM ip_access_logs WHERE ip_address=%s AND access_date=%s", (user_ip, current_date))
+    if cursor.fetchone():
+        conn.close()
+        return '<script>alert("You have already used your free trial for today. try again tomorrow");window.location="/free";</script>'
+
     cursor.execute("SELECT used FROM free_tokens WHERE token=%s", (token,))
     result = cursor.fetchone()
 
@@ -522,6 +530,11 @@ def free_generate_direct():
         return '<script>alert("Already Used");window.location="/free";</script>'
 
     cursor.execute("UPDATE free_tokens SET used=TRUE WHERE token=%s", (token,))
+    try:
+        cursor.execute("INSERT INTO ip_access_logs (ip_address, access_date) VALUES (%s, %s)", (user_ip, current_date))
+    except psycopg2.IntegrityError:
+        conn.rollback()
+
     now = int(time.time())
     new_key = "Slider_12h" + ''.join(random.choices(string.ascii_letters + string.digits, k=15))
     expiry = now + (3 * 3600)
