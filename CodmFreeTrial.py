@@ -499,7 +499,7 @@ def free_process_route():
             rem_hours = int(remaining_seconds / 3600)
             rem_mins = int((remaining_seconds % 3600) / 60)
             rem_secs = int(remaining_seconds % 60)
-            return f'<script>alert("This device has already claimed a free key. Please try again after {rem_hours} hour(s) {rem_mins} minute(s) {rem_secs} second(s).");window.location="/free";</script>'
+            return f'<script>alert("This device has already claimed a free trial. Please try again after {rem_hours} hour(s) {rem_mins} minute(s) {rem_secs} second(s).");window.location="/free";</script>'
 
     token = str(uuid.uuid4())
     session["free_token"] = token
