@@ -113,7 +113,7 @@ body{background:#ffffff;color:#000000;font-family:sans-serif;padding:20px;margin
 <div class="price-item">₱730  |  $12.87 •  30 Days</div>
 <div class="price-item">₱2,000 | Permanent Access ∞</div>
 <div class="payment-methods">GCash • PayPal • Binance • Wise • Tele Wallet</div>
-<div class="payment-methods">𝘈𝘷𝘢𝘪𝘭 𝘕𝘰𝘸: <a href="http://t.me/phia_maganda" target="_blank" style="color:#0088cc;text-decoration:none;font-weight:bold;">𝑷𝒉𝒊𝒂 𝑷𝒉𝒊𝒂 𝐹𝑒𝑙𝑖𝑐𝑖𝑎</a></div>
+<div class="payment-methods">𝘈𝘷𝘢𝘪𝘭 𝘕𝘰𝘸: <a href="http://t.me/phia_maganda" target="_blank" style="color:#0088cc;text-decoration:none;font-weight:bold;">𝑷𝒉𝒊𝒂 𝑭𝒆𝒍𝒊𝒄𝒊𝒂</a></div>
 </div>
 <div class="divider">=======================================</div>
 {% if free_enabled %}
@@ -165,59 +165,6 @@ function submitFreeForm() {
     document.getElementById('deviceFingerprint').value = fp;
     document.getElementById('freeForm').submit();
 }
-</script>
-</body>
-</html>
-"""
-
-FREE_COOLDOWN_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cooldown - Kaze Lider Mods</title>
-<style>
-body{background:#ffffff;color:#000000;font-family:sans-serif;padding:30px;text-align:center;}
-.box{background:#f3f3f3;padding:25px;border-radius:8px;border:2px dashed #ff0000;display:inline-block;margin-top:40px;max-width:450px;}
-h3{color:#ff0000;margin-top:0;}
-p{font-size:16px;line-height:1.5;}
-.timer{font-size:20px;font-weight:bold;color:#ff3b30;margin:15px 0;}
-.btn-back{display:inline-block;margin-top:20px;padding:10px 20px;background:#00a2e8;color:white;text-decoration:none;border-radius:5px;font-weight:bold;}
-</style>
-</head>
-<body>
-<div class="box">
-    <h3>⏳ COOLDOWN ACTIVE</h3>
-    <p>This device has already claimed a free key.</p>
-    <p>Please try again after:</p>
-    <div class="timer" id="countdown">Calculating...</div>
-    <br>
-    <a href="/free" class="btn-back">Go Back</a>
-</div>
-
-<script>
-let remainingSeconds = {{ remaining_seconds }};
-
-function updateTimer() {
-    if (remainingSeconds <= 0) {
-        document.getElementById("countdown").innerText = "Cooldown finished! Redirecting...";
-        window.location.href = "/free";
-        return;
-    }
-    
-    let hours = Math.floor(remainingSeconds / 3600);
-    let minutes = Math.floor((remainingSeconds % 3600) / 60);
-    let seconds = remainingSeconds % 60;
-    
-    document.getElementById("countdown").innerText = 
-        hours + " hour(s) " + minutes + " Minute(s) " + seconds + " Second(s)";
-    
-    remainingSeconds--;
-}
-
-setInterval(updateTimer, 1000);
-updateTimer();
 </script>
 </body>
 </html>
@@ -549,7 +496,10 @@ def free_process_route():
         last_claimed = result[0]
         if now - last_claimed < cooldown_period:
             remaining_seconds = cooldown_period - (now - last_claimed)
-            return render_template_string(FREE_COOLDOWN_TEMPLATE, remaining_seconds=remaining_seconds)
+            rem_hours = int(remaining_seconds / 3600)
+            rem_mins = int((remaining_seconds % 3600) / 60)
+            rem_secs = int(remaining_seconds % 60)
+            return f'<script>alert("This device has already claimed a free key. Please try again after {rem_hours} hour(s) {rem_mins} minute(s) {rem_secs} second(s).");window.location="/free";</script>'
 
     token = str(uuid.uuid4())
     session["free_token"] = token
@@ -612,8 +562,11 @@ def free_generate_direct():
     result_fp = cursor.fetchone()
     if result_fp and (now - result_fp[0] < cooldown_period):
         remaining_seconds = cooldown_period - (now - result_fp[0])
+        rem_hours = int(remaining_seconds / 3600)
+        rem_mins = int((remaining_seconds % 3600) / 60)
+        rem_secs = int(remaining_seconds % 60)
         conn.close()
-        return render_template_string(FREE_COOLDOWN_TEMPLATE, remaining_seconds=remaining_seconds)
+        return f'<script>alert("This device has already claimed a free key today. Please try again after {rem_hours} hour(s) {rem_mins} minute(s) {rem_secs} second(s).");window.location="/free";</script>'
 
     cursor.execute("SELECT used FROM free_tokens WHERE token=%s", (token,))
     token_res = cursor.fetchone()
