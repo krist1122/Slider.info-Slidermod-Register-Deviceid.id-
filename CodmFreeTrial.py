@@ -495,11 +495,8 @@ def free_process_route():
     if result:
         last_claimed = result[0]
         if now - last_claimed < cooldown_period:
-            remaining_seconds = cooldown_period - (now - last_claimed)
-            rem_hours = int(remaining_seconds / 3600)
-            rem_mins = int((remaining_seconds % 3600) / 60)
-            rem_secs = int(remaining_seconds % 60)
-            return f'<script>alert("This device has already claimed a free key. Please try again after {rem_hours} hour(s) {rem_mins} minute(s) {rem_secs} second(s).");window.location="/free";</script>'
+            remaining_hours = int((cooldown_period - (now - last_claimed)) / 3600)
+            return f'<script>alert("This device has already claimed a free key. Please try again after {remaining_hours} hour(s).");window.location="/free";</script>'
 
     token = str(uuid.uuid4())
     session["free_token"] = token
@@ -561,12 +558,8 @@ def free_generate_direct():
     cursor.execute("SELECT last_claimed FROM device_fingerprints WHERE fingerprint = %s", (device_fp,))
     result_fp = cursor.fetchone()
     if result_fp and (now - result_fp[0] < cooldown_period):
-        remaining_seconds = cooldown_period - (now - result_fp[0])
-        rem_hours = int(remaining_seconds / 3600)
-        rem_mins = int((remaining_seconds % 3600) / 60)
-        rem_secs = int(remaining_seconds % 60)
         conn.close()
-        return f'<script>alert("This device has already claimed a free key today. Please try again after {rem_hours} hour(s) {rem_mins} minute(s) {rem_secs} second(s).");window.location="/free";</script>'
+        return '<script>alert("This device has already claimed a free key today.");window.location="/free";</script>'
 
     cursor.execute("SELECT used FROM free_tokens WHERE token=%s", (token,))
     token_res = cursor.fetchone()
