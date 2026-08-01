@@ -38,7 +38,7 @@ def get_db_connection():
     return psycopg2.connect(db_url, sslmode="require")
 
 # ==========================================
-# INIT DB (FIXED - NO BROKEN CODE)
+# INIT DB (UPDATED FOR DEVICE FINGERPRINT)
 # ==========================================
 def init_db():
     conn = get_db_connection()
@@ -68,10 +68,9 @@ def init_db():
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS ip_access_logs (
-            ip_address TEXT,
-            access_date TEXT,
-            PRIMARY KEY (ip_address, access_date)
+        CREATE TABLE IF NOT EXISTS device_fingerprints (
+            fingerprint TEXT PRIMARY KEY,
+            last_claimed BIGINT
         )
     """)
 
@@ -79,7 +78,7 @@ def init_db():
     conn.close()
     
 # ==========================================
-# USER LANDING TEMPLATE
+# USER LANDING TEMPLATE (WITH JS FINGERPRINT)
 # ==========================================
 FREE_LANDING_TEMPLATE = """
 <!DOCTYPE html>
@@ -118,10 +117,11 @@ body{background:#ffffff;color:#000000;font-family:sans-serif;padding:20px;margin
 </div>
 <div class="divider">=======================================</div>
 {% if free_enabled %}
-<form action="/free/process" method="POST">
+<form action="/free/process" method="POST" id="freeForm">
+<input type="hidden" name="device_fingerprint" id="deviceFingerprint">
 <div class="trial-container">
 <div class="tap-here">TAP HERE</div>
-<button type="submit" class="trial-link-btn">Free trial link 1.</button>
+<button type="button" onclick="submitFreeForm()" class="trial-link-btn">Free trial link 1.</button>
 <span class="temporary-text">(CODM GARENA / GLOBAL)</span>
 </div>
 </form>
@@ -131,6 +131,41 @@ body{background:#ffffff;color:#000000;font-family:sans-serif;padding:20px;margin
 <div style="font-size:18px;line-height:1.7;">Free trial is currently unavailable.<br>Please wait for free access to reopen<br>OR avail ViP access 🙂</div>
 </div>
 {% endif %}
+
+<script>
+function generateFingerprint() {
+    let canvas = document.createElement('canvas');
+    let ctx = canvas.getContext('2d');
+    ctx.textBaseline = "top";
+    ctx.font = "14px 'Arial'";
+    ctx.fillText("SliderModDeviceFingerprint", 2, 2);
+    let canvasData = canvas.toDataURL();
+
+    let rawData = [
+        navigator.userAgent,
+        navigator.language,
+        screen.colorDepth,
+        screen.width + 'x' + screen.height,
+        new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || 'unknown',
+        canvasData
+    ].join('###');
+
+    let hash = 0;
+    for (let i = 0; i < rawData.length; i++) {
+        let char = rawData.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash |= 0;
+    }
+    return "fp_" + Math.abs(hash).toString(36) + "_" + screen.width + screen.height;
+}
+
+function submitFreeForm() {
+    let fp = generateFingerprint();
+    document.getElementById('deviceFingerprint').value = fp;
+    document.getElementById('freeForm').submit();
+}
+</script>
 </body>
 </html>
 """
@@ -199,9 +234,6 @@ ADMIN_LOGIN_TEMPLATE = """
 </html>
 """
 
-# ==========================================
-# ADMIN PANEL TEMPLATE (KATULAD NG MLBB)
-# ==========================================
 ADMIN_PANEL_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -374,7 +406,7 @@ tr:nth-child(even){background:#161616;}
 <span class="badge-expired">❌ Expired</span>
 {% else %}
 <span class="badge-active">✅ Active</span><br>
-<small>{{ datetime_format(row[2]) }}</small>
+<small>{{ datetime_format(row[2] )}}</small>
 {% endif %}
 </td>
 <td style="display:flex;gap:5px;flex-wrap:wrap;">
@@ -435,7 +467,7 @@ function searchKeys(){
 """
 
 # ==========================================
-# USER ROUTES (FREE TRIAL & SAFELINK)
+# USER ROUTES (WITH DEVICE FINGERPRINT COOLDOWN)
 # ==========================================
 @app.route('/free')
 def free_landing():
@@ -447,30 +479,33 @@ def free_process_route():
     if not FREE_KEY_ENABLED:
         return '<script>alert("Free Key Locked");window.location="/free";</script>'
 
-    if request.headers.getlist("X-Forwarded-For"):
-        user_ip = request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip()
-    else:
-        user_ip = request.remote_addr
+    device_fp = request.form.get('device_fingerprint', '').strip()
+    if not device_fp:
+        return '<script>alert("Invalid Device Signature. Please try again.");window.location="/free";</script>'
 
-    current_date = time.strftime("%Y-%m-%d", time.gmtime()) 
+    now = int(time.time())
+    cooldown_period = 86400  # 24 Oras
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    cursor.execute("SELECT 1 FROM ip_access_logs WHERE ip_address=%s AND access_date=%s", (user_ip, current_date))
-    already_accessed = cursor.fetchone()
+    cursor.execute("SELECT last_claimed FROM device_fingerprints WHERE fingerprint = %s", (device_fp,))
+    result = cursor.fetchone()
     conn.close()
 
-    if already_accessed:
-        return '<script>alert("You have already used your free trial for today. try again tomorrow");window.location="/free";</script>'
+    if result:
+        last_claimed = result[0]
+        if now - last_claimed < cooldown_period:
+            remaining_hours = int((cooldown_period - (now - last_claimed)) / 3600)
+            return f'<script>alert("This device has already claimed a free key. Please try again after {remaining_hours} hour(s).");window.location="/free";</script>'
 
     token = str(uuid.uuid4())
     session["free_token"] = token
     session["passed_safelink"] = False
+    session["device_fp"] = device_fp
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO free_tokens (token, used, created_at) VALUES (%s,%s,%s)", (token, False, int(time.time())))
+    cursor.execute("INSERT INTO free_tokens (token, used, created_at) VALUES (%s,%s,%s)", (token, False, now))
     conn.commit()
     conn.close()
 
@@ -509,41 +544,39 @@ def free_generate_direct():
         return '<script>alert("Bypass pa kupal!");window.location="/free";</script>'
 
     token = session.get("free_token")
-    if not token:
+    device_fp = session.get("device_fp")
+    
+    if not token or not device_fp:
         return '<script>alert("Session Expired");window.location="/free";</script>'
 
-    if request.headers.getlist("X-Forwarded-For"):
-        user_ip = request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip()
-    else:
-        user_ip = request.remote_addr
-
-    current_date = time.strftime("%Y-%m-%d", time.gmtime())
+    now = int(time.time())
+    cooldown_period = 86400
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT 1 FROM ip_access_logs WHERE ip_address=%s AND access_date=%s", (user_ip, current_date))
-    if cursor.fetchone():
+    cursor.execute("SELECT last_claimed FROM device_fingerprints WHERE fingerprint = %s", (device_fp,))
+    result_fp = cursor.fetchone()
+    if result_fp and (now - result_fp[0] < cooldown_period):
         conn.close()
-        return '<script>alert("You have already used your free trial for today. try again tomorrow");window.location="/free";</script>'
+        return '<script>alert("This device has already claimed a free key today.");window.location="/free";</script>'
 
     cursor.execute("SELECT used FROM free_tokens WHERE token=%s", (token,))
-    result = cursor.fetchone()
+    token_res = cursor.fetchone()
 
-    if not result:
+    if not token_res or token_res[0]:
         conn.close()
-        return '<script>alert("Invalid Token");window.location="/free";</script>'
-    if result[0]:
-        conn.close()
-        return '<script>alert("Already Used");window.location="/free";</script>'
+        return '<script>alert("Invalid or Used Token");window.location="/free";</script>'
 
     cursor.execute("UPDATE free_tokens SET used=TRUE WHERE token=%s", (token,))
-    try:
-        cursor.execute("INSERT INTO ip_access_logs (ip_address, access_date) VALUES (%s, %s)", (user_ip, current_date))
-    except psycopg2.IntegrityError:
-        conn.rollback()
+    
+    cursor.execute("""
+        INSERT INTO device_fingerprints (fingerprint, last_claimed) 
+        VALUES (%s, %s) 
+        ON CONFLICT (fingerprint) 
+        DO UPDATE SET last_claimed = EXCLUDED.last_claimed
+    """, (device_fp, now))
 
-    now = int(time.time())
     new_key = "Slider_12h" + ''.join(random.choices(string.ascii_letters + string.digits, k=15))
     expiry = now + (3 * 3600)
 
@@ -553,6 +586,7 @@ def free_generate_direct():
 
     session.pop("passed_safelink", None)
     session.pop("free_token", None)
+    session.pop("device_fp", None)
 
     return render_template_string(FREE_GENERATED_TEMPLATE, key=new_key)
 
@@ -633,7 +667,7 @@ def admin_logout():
     return redirect("/admin/login")
 
 # ==========================================
-# ADMIN PANEL ROUTE (UPDATED)
+# ADMIN PANEL ROUTE
 # ==========================================
 @app.route('/admin/panel')
 def admin_panel():
@@ -667,7 +701,7 @@ def admin_panel():
     )
 
 # ==========================================
-# KEY MANAGEMENT ROUTES (CUSTOM & VIP GENERATE)
+# KEY MANAGEMENT ROUTES
 # ==========================================
 @app.route('/admin/generate_key', methods=['POST'])
 def admin_generate():
@@ -741,9 +775,6 @@ def custom_generate():
         conn.close()
         return f'<script>alert("Error:\\n\\n{str(e)}");window.location.href="/admin/panel";</script>'
 
-# ==========================================
-# RESET HWID / NO LOCK / EDIT / DELETE / BAN
-# ==========================================
 @app.route('/admin/reset/<string:key>', methods=['GET'])
 def admin_reset_hwid(key):
     if not session.get("admin"):
@@ -860,9 +891,6 @@ def unblock_device_manual():
 
     return f'<script>alert("Device Unbanned\\n\\n{hwid}");window.location.href="/admin/panel";</script>'
 
-# ==========================================
-# FREE KEY LOCK / UNLOCK TOGGLE
-# ==========================================
 @app.route('/admin/free/lock')
 def lock_free_key():
     global FREE_KEY_ENABLED
