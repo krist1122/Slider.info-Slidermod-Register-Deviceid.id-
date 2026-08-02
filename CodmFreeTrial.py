@@ -584,8 +584,8 @@ def free_generate_direct():
         DO UPDATE SET last_claimed = EXCLUDED.last_claimed
     """, (device_fp, now))
 
-    new_key = "Slider_12h" + ''.join(random.choices(string.ascii_letters + string.digits, k=15))
-    expiry = now + (3 * 3600)
+    new_key = "Slider_trial_" + ''.join(random.choices(string.ascii_letters + string.digits, k=13))
+    expiry = now + (1 * 3600)
 
     cursor.execute("INSERT INTO free_keys_table (license_key, hwid, expiry_timestamp, game) VALUES (%s,%s,%s,%s)", (new_key, '', expiry, 'CODM'))
     conn.commit()
