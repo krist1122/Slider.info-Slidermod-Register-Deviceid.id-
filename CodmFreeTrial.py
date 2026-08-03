@@ -122,7 +122,7 @@ body{background:#ffffff;color:#000000;font-family:sans-serif;padding:20px;margin
 <div class="trial-container">
 <div class="tap-here">TAP HERE</div>
 <button type="button" onclick="submitFreeForm()" class="trial-link-btn">Free trial link 1.</button>
-<span class="temporary-text">(CODM GARENA / GLOBAL)</span>
+<span class="temporary-text">(CODM GARENA)</span>
 </div>
 </form>
 {% else %}
